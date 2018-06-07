@@ -6,7 +6,7 @@ app.get('/api/searchresult', function (req, res) {
     setTimeout(function () {
         if (Math.random() > 0.5) {
             var str = req.query.term.toString();
-            res.send(str + str);
+            res.send([str + str, str + str + str, str + str + str + str, str + str + str + str + str]);
         } else {
             res.status(500).send({error: 'Something failed!'});
         }
