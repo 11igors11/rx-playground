@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import { HttpClient, HttpClientModule, HttpHandler } from '@angular/common/http';
+import { SearchService } from './search.service';
 
 @NgModule({
   declarations: [
@@ -12,7 +13,7 @@ import { HttpClient, HttpClientModule, HttpHandler } from '@angular/common/http'
     BrowserModule,
     HttpClientModule
   ],
-  providers: [],
+  providers: [SearchService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

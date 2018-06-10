@@ -2,6 +2,8 @@ import { AfterViewInit, ApplicationRef, Component, ElementRef, ViewChild } from 
 import { HttpClient } from '@angular/common/http';
 import { flatMap, map, pluck, retry, switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, fromEvent } from 'rxjs';
+import { callLifecycleHooksChildrenFirst } from '@angular/core/src/view/provider';
+import { SearchService } from './search.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +15,8 @@ export class AppComponent implements AfterViewInit {
   @ViewChild(`input`) inputRef: ElementRef;
   @ViewChild(`text`) textRef: ElementRef;
 
-  constructor(private httpClient: HttpClient) {
+  constructor(private httpClient: HttpClient,
+    private searchService: SearchService) {
   }
 
   ngAfterViewInit(): void {
@@ -41,27 +44,30 @@ export class AppComponent implements AfterViewInit {
     mousedown$
       .pipe(flatMap((md: MouseEvent) => {
 
-          const startX = md.offsetX;
-          const startY = md.offsetY;
+        const startX = md.offsetX;
+        const startY = md.offsetY;
 
-          return mousemove$
-            .pipe(
-              map((mm: MouseEvent) => {
-                mm.preventDefault();
-                return {
-                  left: mm.clientX - startX,
-                  top: mm.clientY - startY
-                };
-              }),
-              takeUntil(mouseup$)
-            );
-        }),
-      )
+        return mousemove$
+          .pipe(
+            map((mm: MouseEvent) => {
+              mm.preventDefault();
+              return {
+                left: mm.clientX - startX,
+                top: mm.clientY - startY
+              };
+            }),
+            takeUntil(mouseup$)
+          );
+      }),
+    )
       .subscribe(pos => {
         el.style.top = pos.top + `px`;
         el.style.left = pos.left + `px`;
       });
 
+
+
+    this.searchService.run();
   }
 
 
@@ -70,4 +76,8 @@ export class AppComponent implements AfterViewInit {
       params: { term },
     }).pipe(retry(20));
   }
+
+  // search algorithms
+
+
 }
