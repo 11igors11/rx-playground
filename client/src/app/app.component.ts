@@ -4,6 +4,7 @@ import { flatMap, map, pluck, retry, switchMap, takeUntil } from 'rxjs/operators
 import { Observable, fromEvent } from 'rxjs';
 import { callLifecycleHooksChildrenFirst } from '@angular/core/src/view/provider';
 import { SearchService } from './search.service';
+import { TreeService } from './tree.service';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +17,8 @@ export class AppComponent implements AfterViewInit {
   @ViewChild(`text`) textRef: ElementRef;
 
   constructor(private httpClient: HttpClient,
-    private searchService: SearchService) {
+    private searchService: SearchService,
+    private treeService: TreeService) {
   }
 
   ngAfterViewInit(): void {
@@ -66,8 +68,13 @@ export class AppComponent implements AfterViewInit {
       });
 
 
-
+    // search 
     this.searchService.run();
+
+
+    // tree traversal
+    this.treeService.run();
+
   }
 
 
