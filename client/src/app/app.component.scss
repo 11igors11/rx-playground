@@ -12,9 +12,14 @@
   position: absolute;
   top: 200px;
   left: 200px;
-  background-color: dimgray;
+  background-image: var(--image);
+  background-size: cover;
+  background-position: center;
   width: 100px;
   height: 100px;
+  border: solid;
+  border-width: 2px;
+  border-color: var(--color-active);
 }
 
 textarea {
