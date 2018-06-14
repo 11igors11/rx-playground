@@ -1,10 +1,13 @@
-import { AfterViewInit, ApplicationRef, Component, ElementRef, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { flatMap, map, pluck, retry, switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, fromEvent } from 'rxjs';
-import { callLifecycleHooksChildrenFirst } from '@angular/core/src/view/provider';
-import { SearchService } from './search.service';
-import { TreeService } from './tree.service';
+import { SearchService } from '../services/search.service';
+import { TreeService } from '../services/tree.service';
+import { AppState } from 'src/app/state/app.state';
+import { Store } from '@ngrx/store';
+import { Suggestion } from 'src/app/state/models/suggestion.model';
+import { AddSuggestions } from 'src/app/state/actions/suggestion.actions';
 
 @Component({
   selector: 'app-root',
@@ -16,12 +19,18 @@ export class AppComponent implements AfterViewInit {
   @ViewChild(`input`) inputRef: ElementRef;
   @ViewChild(`text`) textRef: ElementRef;
 
+  private suggestions: Observable<string>;
+
   constructor(private httpClient: HttpClient,
-    private searchService: SearchService,
-    private treeService: TreeService) {
+              private searchService: SearchService,
+              private treeService: TreeService,
+              private store: Store<AppState>) {
   }
 
   ngAfterViewInit(): void {
+
+    this.suggestions = this.store.select('suggestions')
+      .pipe(map((suggesions: Suggestion[]) => suggesions.map(s => s.name).join(`\n`)));
 
     // search
 
@@ -32,7 +41,13 @@ export class AppComponent implements AfterViewInit {
         pluck(`target`, `value`),
         switchMap((v: string) => this.getRequest(v)))
       .subscribe(result => {
-        this.textRef.nativeElement.textContent = result.join(`\n`);
+        const suggestions = result.map(r => {
+          return {
+            name: r,
+            length: r.length
+          }
+        });
+        this.store.dispatch(new AddSuggestions(suggestions));
       });
 
 
@@ -46,29 +61,29 @@ export class AppComponent implements AfterViewInit {
     mousedown$
       .pipe(flatMap((md: MouseEvent) => {
 
-        const startX = md.offsetX;
-        const startY = md.offsetY;
+          const startX = md.offsetX;
+          const startY = md.offsetY;
 
-        return mousemove$
-          .pipe(
-            map((mm: MouseEvent) => {
-              mm.preventDefault();
-              return {
-                left: mm.clientX - startX,
-                top: mm.clientY - startY
-              };
-            }),
-            takeUntil(mouseup$)
-          );
-      }),
-    )
+          return mousemove$
+            .pipe(
+              map((mm: MouseEvent) => {
+                mm.preventDefault();
+                return {
+                  left: mm.clientX - startX,
+                  top: mm.clientY - startY
+                };
+              }),
+              takeUntil(mouseup$)
+            );
+        }),
+      )
       .subscribe(pos => {
         el.style.top = pos.top + `px`;
         el.style.left = pos.left + `px`;
       });
 
 
-    // search 
+    // search
     this.searchService.run();
 
 
