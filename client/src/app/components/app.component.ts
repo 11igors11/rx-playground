@@ -25,12 +25,12 @@ export class AppComponent implements AfterViewInit {
               private searchService: SearchService,
               private treeService: TreeService,
               private store: Store<AppState>) {
+    this.suggestions = this.store.select('suggestions')
+      .pipe(map((suggesions: Suggestion[]) => suggesions.map(s => s.name).join(`\n`)));
   }
 
   ngAfterViewInit(): void {
 
-    this.suggestions = this.store.select('suggestions')
-      .pipe(map((suggesions: Suggestion[]) => suggesions.map(s => s.name).join(`\n`)));
 
     // search
 
